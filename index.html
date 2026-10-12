@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1a1210">
+<title>마음 난로 온도계</title>
+<meta name="description" content="내 도움은 따뜻한 난로일까, 과열된 불씨일까? 에니어그램 2번(조력가) 이야기로 보는 마음 점검 앱">
+<style>
+:root{--bg:#1a1210;--card:#261a17;--card2:#33231e;--fg:#f6ece6;--mut:#bba59a;--line:#4a3129;
+--fire:#ff6a3d;--warm:#ffb347;--ok:#7bd88f;--bad:#ff5c5c;--cool:#8fb8ff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;line-height:1.55}
+[hidden]{display:none!important}
+.wrap{max-width:560px;margin:0 auto;padding:12px 14px 40px}
+h1{font-size:1.2rem;margin:6px 0}
+h1 small{display:block;font-size:.76rem;color:var(--mut);font-weight:400}
+.tabs{display:flex;gap:5px;margin:10px 0}
+.tabs button{flex:1;padding:9px 2px;border:1px solid var(--line);background:var(--card);color:var(--mut);border-radius:10px;font-size:.84rem;font-weight:600}
+.tabs button.on{background:#5a2a1c;color:#fff;border-color:#a8492b}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:10px 0}
+h2{font-size:1rem;margin:2px 0 8px}
+.note{font-size:.86rem;color:var(--mut);margin:8px 0 0}
+.note b{color:var(--fg)}
+.btn{padding:12px 14px;border-radius:12px;border:0;background:linear-gradient(135deg,#e2522d,#f08a2c);color:#fff;font-weight:700;font-size:.95rem;flex:1}
+.btn.sec{background:var(--card2);border:1px solid var(--line);color:var(--fg)}
+.btn:disabled{opacity:.4}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row+.row{margin-top:8px}
+.prog{font-size:.8rem;color:var(--mut)}
+.pbar{height:6px;background:var(--card2);border-radius:3px;overflow:hidden;margin:6px 0 12px}
+.pbar div{height:100%;background:linear-gradient(90deg,#e2522d,#ffb347);transition:width .25s}
+.qtext{font-size:1.05rem;font-weight:600;min-height:3.2em;margin:4px 0 12px}
+.likert{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.likert button{padding:12px 0 8px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--fg);font-size:1.05rem;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:2px}
+.likert button span{font-size:.62rem;color:var(--mut);font-weight:400}
+.likert button.sel{border-color:var(--fire);background:#4a2418}
+.thermo{display:flex;gap:16px;align-items:flex-end;justify-content:center;margin:8px 0 4px}
+.tcol{display:flex;flex-direction:column;align-items:center;gap:6px;width:84px}
+.tube{width:26px;height:150px;border-radius:13px;background:var(--card2);border:2px solid var(--line);position:relative;overflow:hidden}
+.tube div{position:absolute;left:0;right:0;bottom:0;border-radius:11px;transition:height .9s cubic-bezier(.2,.8,.2,1)}
+.bulb{width:38px;height:38px;border-radius:50%;margin-top:-12px;border:2px solid var(--line)}
+.tlab{font-size:.78rem;color:var(--mut);text-align:center;line-height:1.3}
+.tval{font-weight:800;font-variant-numeric:tabular-nums}
+.verdict{text-align:center;font-size:1.3rem;font-weight:800;margin:10px 0 2px}
+.vsub{text-align:center;color:var(--mut);font-size:.9rem}
+.rx{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.rx div{background:var(--card2);border-radius:10px;padding:10px 12px;font-size:.92rem;border-left:3px solid var(--warm)}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opts button{text-align:left;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--fg);font-size:.95rem;line-height:1.45}
+.opts button.ok{border-color:var(--ok);background:#1f3a26}
+.opts button.no{border-color:var(--bad);background:#3e1f1f}
+.opts button.meh{border-color:var(--warm);background:#3d2e18}
+.scene{font-size:1.02rem;font-weight:600;margin:6px 0 12px}
+.scene .who{display:inline-block;font-size:.72rem;color:var(--mut);border:1px solid var(--line);border-radius:6px;padding:0 6px;margin-bottom:4px;font-weight:400}
+.exp{margin-top:10px;font-size:.9rem;background:#2e1d16;border-left:3px solid var(--fire);padding:9px 11px;border-radius:6px}
+.big{font-size:2.2rem;text-align:center;margin:6px 0}
+label.f{display:block;font-size:.84rem;color:var(--mut);margin:10px 0 4px}
+input[type=text],select,textarea{width:100%;padding:11px 12px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--fg);font-size:1rem;font-family:inherit}
+textarea{min-height:64px;resize:vertical}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.chips button{padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card2);color:var(--fg);font-size:.82rem}
+.tcard{margin-top:12px;border-radius:16px;padding:20px 18px;background:radial-gradient(circle at 85% 15%,rgba(255,179,71,.45),transparent 45%),linear-gradient(150deg,#7a2a17,#c2482a 55%,#e88a3a);color:#fff;box-shadow:0 6px 24px rgba(226,82,45,.25)}
+.tcard .to{font-size:.9rem;opacity:.9}
+.tcard .msg{font-size:1.12rem;font-weight:700;margin:10px 0;white-space:pre-wrap;line-height:1.6}
+.tcard .from{text-align:right;font-size:.85rem;opacity:.9}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#000c;color:#fff;padding:10px 16px;border-radius:999px;font-size:.9rem;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+.info h3{font-size:.98rem;margin:14px 0 4px;color:#ffd2b8}
+.info p{margin:4px 0;font-size:.92rem}
+.info ul{margin:4px 0;padding-left:20px;font-size:.92rem}
+.tagc{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.tagc span{font-size:.8rem;padding:3px 9px;border-radius:999px;background:#4a2418;border:1px solid #7a3a24}
+.arrow{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;text-align:center;font-size:.88rem;margin:6px 0}
+.arrow .box{background:var(--card2);border-radius:10px;padding:8px}
+a{color:#ffb38a}
+footer{text-align:center;color:var(--mut);font-size:.78rem;margin-top:18px}
+footer a{color:var(--mut)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🔥 마음 난로 온도계<small>내 도움은 곁을 데우는 난로일까, 과열된 불씨일까</small></h1>
+<div class="tabs">
+  <button class="on" data-tab="thermo">온도계</button>
+  <button data-tab="game">묻고 돕기</button>
+  <button data-tab="card">고마움 카드</button>
+  <button data-tab="info">2번 한눈에</button>
+</div>
+
+<!-- ===== 온도계 ===== -->
+<section id="tab-thermo">
+  <div class="card" id="tIntro">
+    <h2>♨️ 내 마음 난로 온도 재기</h2>
+    <p style="margin:0">문장 12개를 읽고, 요즘의 나와 얼마나 비슷한지 1~5로 눌러 주세요. 1분이면 끝납니다.</p>
+    <p class="note">세 가지를 잽니다 — <b>따뜻함</b>(남을 살피는 불), <b>과열</b>(지나친 챙김과 서운함), <b>연료</b>(나를 돌보는 힘). 유형 진단이 아니라, 누구나 해 볼 수 있는 "도움 습관" 점검입니다.</p>
+    <div class="row" style="margin-top:12px"><button class="btn" id="tStart">시작하기</button></div>
+    <p class="note" id="tLast"></p>
+  </div>
+  <div class="card" id="tQ" hidden>
+    <div class="prog" id="tProg"></div>
+    <div class="pbar"><div id="tBar"></div></div>
+    <div class="qtext" id="tText"></div>
+    <div class="likert" id="tLik"></div>
+    <div class="row" style="margin-top:12px"><button class="btn sec" id="tBack">← 이전</button></div>
+  </div>
+  <div class="card" id="tRes" hidden>
+    <div class="thermo" id="thermo"></div>
+    <div class="verdict" id="vTitle"></div>
+    <div class="vsub" id="vSub"></div>
+    <div class="rx" id="rx"></div>
+    <div class="row" style="margin-top:14px"><button class="btn sec" id="tShare">결과 복사</button><button class="btn" id="tAgain">다시 재기</button></div>
+    <p class="note">이 점검은 성찰을 돕는 참고용이며 심리검사나 전문 상담을 대신하지 않습니다. 내 에니어그램 유형이 궁금하다면 <a href="https://woojuntaek-lgtm.github.io/enneagram-quick/" target="_blank" rel="noopener">에니어그램 빠른 체크</a>를 해 보세요.</p>
+  </div>
+</section>
+
+<!-- ===== 묻고 돕기 ===== -->
+<section id="tab-game" hidden>
+  <div class="card" id="gCard"></div>
+</section>
+
+<!-- ===== 고마움 카드 ===== -->
+<section id="tab-card" hidden>
+  <div class="card">
+    <h2>💌 고마움은 구체적으로</h2>
+    <p class="note" style="margin-top:0">"그냥 고마워"보다 <b>"덕분에 이게 편해졌어"</b>가 2번에게 훨씬 오래 남습니다. 주변의 따뜻한 그 사람에게 보내 보세요.</p>
+    <label class="f" for="cTo">받는 사람</label>
+    <input type="text" id="cTo" placeholder="예: 엄마, 김 대리님, 민지야" maxlength="20">
+    <label class="f" for="cWhat">그 사람이 해 준 일</label>
+    <select id="cWhat">
+      <option value="food">반찬·밥을 챙겨 줌</option>
+      <option value="work">일을 도와줌</option>
+      <option value="listen">이야기를 들어 줌</option>
+      <option value="care">아플 때·힘들 때 챙겨 줌</option>
+      <option value="gift">선물·마음을 보내 줌</option>
+      <option value="always">늘 곁에서 챙겨 줌</option>
+    </select>
+    <label class="f" for="cThanks">덕분에 무엇이 좋아졌나요? (가장 중요한 부분)</label>
+    <textarea id="cThanks" maxlength="120" placeholder="예: 이번 주 저녁 걱정을 덜었어"></textarea>
+    <div class="chips" id="cChips"></div>
+    <label class="f" for="cFrom">보내는 사람</label>
+    <input type="text" id="cFrom" placeholder="예: 막내가" maxlength="20">
+    <div class="tcard" id="tcard"><div class="to" id="pTo"></div><div class="msg" id="pMsg"></div><div class="from" id="pFrom"></div></div>
+    <div class="row" style="margin-top:12px"><button class="btn sec" id="cAlt">문장 바꾸기 ↻</button><button class="btn" id="cCopy">복사해서 보내기</button></div>
+    <p class="note">입력한 내용은 이 기기 밖으로 나가지 않습니다. 복사한 뒤 카톡·문자에 붙여 넣으세요.</p>
+  </div>
+</section>
+
+<!-- ===== 2번 한눈에 ===== -->
+<section id="tab-info" hidden>
+  <div class="card info">
+    <h2>🔥 에니어그램 2번 · 조력가</h2>
+    <p><b>필요한 사람이 되고 싶은 사람.</b> 타고난 장점은 부드러운 관대함입니다.</p>
+    <div class="tagc"><span>감정형(가슴 중심)</span><span>순응형 — 사람 쪽으로</span><span>미덕: 겸손</span><span>악덕: 교만</span></div>
+    <h3>동양 수리로 보면 — 곁을 데우는 불</h3>
+    <p>숫자 2는 불(火), 십간으로 정(丁), 방향은 남쪽, 색은 빨강. 모두를 태우는 큰불이 아니라 <b>난로·화롯불·손난로</b>처럼 곁에 있는 사람을 데우는 작은 불입니다.</p>
+    <h3>두려움과 바람</h3>
+    <p>가장 두려운 것은 <b>사랑받을 가치가 없는 사람</b>이 되는 것. 그래서 먼저 알아채고 먼저 챙깁니다. "고마워" 한마디에 큰 힘을 얻습니다.</p>
+    <h3>같은 따뜻함, 두 얼굴</h3>
+    <div class="arrow"><div class="box">♨️ 난로<br><small>대가 없이 돕고, 상대가 스스로 서게 한 걸음 물러섬</small></div><div>↔</div><div class="box">🔥 불씨<br><small>챙김→참견, 도움→생색, 헌신→서운함</small></div></div>
+    <p>자유로운 사랑은 상대를 서게 하고, 집착하는 사랑은 붙잡습니다. <b>소유와 사랑은 다릅니다.</b></p>
+    <h3>날개</h3>
+    <ul><li><b>2w1</b> — 성실하고 원칙 있게, 맡은 일은 끝까지 챙기며 돕는 쪽</li><li><b>2w3</b> — 사교적이고 당당하게, 사람을 이어 주며 돕는 쪽</li></ul>
+    <h3>스트레스와 성장</h3>
+    <div class="arrow"><div class="box">스트레스 → <b>8번처럼</b><br><small>참아 온 서운함이 터져 단호·거칠어짐</small></div><div>·</div><div class="box">성장 → <b>4번처럼</b><br><small>내 감정으로 눈을 돌려 솔직해짐</small></div></div>
+    <p>그래서 2번의 처방은 의외로 <b>"나는 지금 어떤 기분이지?"</b></p>
+    <h3>2번에게 건네는 말</h3>
+    <ul><li>내 느낌에 솔직하자.</li><li>남의 눈물보다 내 콧물을 먼저 닦자.</li><li>거리를 유지한 채 적절한 도움을 주자.</li><li>예술적 감성을 키우자.</li><li>소유와 사랑은 다르다.</li></ul>
+    <h3>2번과 잘 지내려면</h3>
+    <ul><li>고마움을 <b>구체적으로</b> 말해 주세요.</li><li>도움을 가끔은 <b>기꺼이 받아</b> 주세요.</li><li>서운해 보이면 <b>먼저 물어봐</b> 주세요.</li></ul>
+    <h3>2번으로 추정되는 인물</h3>
+    <p style="font-size:.86rem;color:var(--mut)">테레사 수녀, 플로렌스 나이팅게일, 데즈먼드 투투 대주교, 루치아노 파바로티, 존 덴버, 프랭클린 루스벨트 — 강의에서의 추정일 뿐 확정은 아닙니다.</p>
+    <p style="margin-top:14px;text-align:center;font-weight:700;color:#ffd2b8">도움이 되지 않을 때에도 당신은 사랑받을 만한 사람입니다.</p>
+  </div>
+</section>
+
+<footer>© 2026 정필 수심명 · <a href="https://blog.naver.com/omyman" target="_blank" rel="noopener">blog.naver.com/omyman</a><br>「에니어그램 2번 조력가」 강의 부록 · 인터넷 없이 동작</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(()=>{
+'use strict';
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const store={get(k,d){try{const v=localStorage.getItem('stove_'+k);return v?JSON.parse(v):d;}catch(e){return d;}},set(k,v){try{localStorage.setItem('stove_'+k,JSON.stringify(v));}catch(e){}}};
+function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('on'),1800);}
+async function copy(t){try{await navigator.clipboard.writeText(t);toast('복사했습니다');}catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');toast('복사했습니다');}catch(_){toast('복사에 실패했습니다');}a.remove();}}
+
+/* ===== 온도계 ===== */
+const Q=[
+ ['W','주변 사람의 기분 변화를 금방 알아챈다.'],
+ ['O','부탁받지 않은 일까지 먼저 해 줄 때가 많다.'],
+ ['S','지금 내 기분이 어떤지 바로 말할 수 있다.'],
+ ['W','누가 힘들어 보이면 그냥 지나치기 어렵다.'],
+ ['O','도와준 만큼 알아주지 않으면 속으로 서운함이 쌓인다.'],
+ ['S','힘들 때 다른 사람에게 도와 달라고 말할 수 있다.'],
+ ['W','사람들을 챙기고 돌볼 때 가장 기쁘다.'],
+ ['O','"내가 없으면 안 될 텐데" 하는 생각이 자주 든다.'],
+ ['S','돕기 전에 "도와줄까? 어떻게 도와줄까?"라고 먼저 묻는다.'],
+ ['W','모임에 처음 온 사람이 있으면 내가 먼저 챙긴다.'],
+ ['O','내가 건넨 도움을 상대가 거절하면 마음이 상한다.'],
+ ['S','거절해야 할 땐 미안해도 거절할 수 있다.']
+];
+const LAB=['전혀\n아니다','아니다','보통','그렇다','매우\n그렇다'];
+let ti=0,ans=[];
+function tShow(){
+  $('#tProg').textContent=`${ti+1} / ${Q.length}`;$('#tBar').style.width=(ti/Q.length*100)+'%';
+  $('#tText').textContent=Q[ti][1];
+  $('#tLik').innerHTML=LAB.map((l,k)=>`<button data-v="${k+1}" class="${ans[ti]===k+1?'sel':''}">${k+1}<span>${l.replace('\n','<br>')}</span></button>`).join('');
+  $$('#tLik button').forEach(b=>b.onclick=()=>{ans[ti]=+b.dataset.v;b.classList.add('sel');navigator.vibrate&&navigator.vibrate(10);
+    setTimeout(()=>{if(ti<Q.length-1){ti++;tShow();}else tResult();},160);});
+  $('#tBack').disabled=ti===0;
+}
+function score(dim){let s=0,n=0;Q.forEach((q,i)=>{if(q[0]===dim){s+=ans[i]-1;n++;}});return Math.round(s/(4*n)*100);}
+function verdict(W,O,S){
+  if(O>=60&&O>=S) return {t:'🔥 불씨 주의',s:'따뜻함이 과열되어 참견·생색·서운함으로 번지기 쉬운 상태',c:'#ff5c5c'};
+  if(W>=55&&S>=55&&O<60) return {t:'♨️ 따뜻한 난로',s:'곁을 데우면서도 나를 꺼뜨리지 않는, 오래가는 불',c:'#7bd88f'};
+  if(W>=55&&S<55) return {t:'🪵 연료가 필요한 난로',s:'남을 데우느라 정작 나를 돌볼 연료가 줄어든 상태',c:'#ffb347'};
+  if(S>=55) return {t:'🧤 은은한 손난로',s:'요란하지 않게, 나를 지키며 조용히 데우는 불',c:'#8fb8ff'};
+  return {t:'🕯️ 잠시 숨 고르는 불',s:'요즘은 남도 나도 돌볼 여유가 적은 때 — 작은 불씨부터',c:'#bba59a'};
+}
+function rxList(W,O,S){const r=[];
+  if(O>=50) r.push('<b>거리를 유지한 채 적절한 도움을.</b> 돕기 전에 "도와드릴까요? 어떻게 도와드릴까요?" 한 번만 물어보세요.');
+  if(O>=50) r.push('<b>소유와 사랑은 다르다.</b> 상대가 스스로 설 수 있게 한 걸음 물러서는 것도 사랑입니다.');
+  if(S<55) r.push('<b>남의 눈물보다 내 콧물을 먼저 닦자.</b> 오늘 나를 위한 일 하나를 먼저 해 보세요.');
+  if(S<55) r.push('<b>내 느낌에 솔직하자.</b> 하루 한 번 "나는 지금 어떤 기분이지?"라고 물어보세요.');
+  if(W>=55&&O<50&&S>=55) r.push('<b>지금 그대로 좋습니다.</b> 도움을 주고도 생색내지 않는 겸손, 그것이 2번의 미덕입니다.');
+  if(W<45) r.push('<b>따뜻함은 크기가 아니라 방향.</b> 고마운 사람에게 "덕분에 ○○가 편해졌어" 한마디를 건네 보세요 — 고마움 카드 탭에서 만들 수 있습니다.');
+  r.push('<b>예술적 감성을 키우자.</b> 음악·그림·글처럼 내 감정을 꺼내 볼 통로를 하나 가져 보세요.');
+  return r.slice(0,4);}
+function tube(lab,v,col){return `<div class="tcol"><div class="tval" style="color:${col}">${v}°</div><div class="tube"><div style="height:0%;background:${col}" data-h="${v}"></div></div><div class="bulb" style="background:${col}"></div><div class="tlab">${lab}</div></div>`;}
+function tResult(){
+  const W=score('W'),O=score('O'),S=score('S'),v=verdict(W,O,S);
+  $('#tQ').hidden=true;$('#tRes').hidden=false;
+  $('#thermo').innerHTML=tube('따뜻함<br><small>남을 살피는 불</small>',W,'#ffb347')+tube('과열<br><small>참견·서운함</small>',O,'#ff5c5c')+tube('연료<br><small>나를 돌보는 힘</small>',S,'#7bd88f');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>$$('#thermo .tube div').forEach(d=>d.style.height=d.dataset.h+'%')));
+  $('#vTitle').textContent=v.t;$('#vTitle').style.color=v.c;$('#vSub').textContent=v.s;
+  $('#rx').innerHTML=rxList(W,O,S).map(t=>`<div>${t}</div>`).join('');
+  const rec={W,O,S,t:v.t,d:new Date().toLocaleDateString('ko-KR')};store.set('last',rec);
+  $('#tShare').onclick=()=>copy(`[마음 난로 온도계] ${v.t}\n따뜻함 ${W}° · 과열 ${O}° · 연료 ${S}°\n${v.s}\nhttps://woojuntaek-lgtm.github.io/helper-stove/`);
+}
+$('#tStart').onclick=()=>{ti=0;ans=[];$('#tIntro').hidden=true;$('#tQ').hidden=false;tShow();};
+$('#tBack').onclick=()=>{if(ti>0){ti--;tShow();}};
+$('#tAgain').onclick=()=>{$('#tRes').hidden=true;$('#tIntro').hidden=false;showLast();};
+function showLast(){const l=store.get('last',null);$('#tLast').textContent=l?`지난번(${l.d}): ${l.t} · 따뜻함 ${l.W}° 과열 ${l.O}° 연료 ${l.S}°`:'';}
+showLast();
+
+/* ===== 묻고 돕기 게임 ===== */
+const SC=[
+ {who:'회사에서',q:'마감을 앞둔 동료가 보고서 때문에 끙끙대고 있습니다. 나는?',o:[
+  ['내 일을 미루고 말없이 보고서를 대신 써 준다.',1,'마음은 따뜻하지만, 상대가 원한 도움인지 모릅니다. 내 일도 밀리고, 나중에 "내가 그렇게 해 줬는데" 서운함이 남기 쉽습니다.'],
+  ['"도와줄까? 어떤 게 제일 급해?" 하고 먼저 묻는다.',2,'정답! 한 번 묻는 것만으로 도움이 <b>상대를 위한 것</b>이 됩니다. 거리를 유지한 채 적절하게 — 오래가는 도움입니다.'],
+  ['다들 바쁘니 모른 척한다.',0,'나를 지키는 것도 필요하지만, 작은 관심 한마디로 충분한 상황입니다. "필요하면 말해" 정도는 어떨까요?']]},
+ {who:'가족에게',q:'독립한 자녀가 새집 정리를 혼자 해 보겠다고 합니다. 나는?',o:[
+  ['그래도 주말에 가서 싹 정리해 준다.',0,'처음 시작은 분명 사랑이지만, 상대가 스스로 서려는 순간을 붙잡는 것일 수 있습니다. <b>소유와 사랑은 다릅니다.</b>'],
+  ['"필요하면 언제든 불러" 하고 기다린다.',2,'정답! 자유로운 사랑은 상대가 스스로 설 수 있게 돕습니다. 문은 열어 두되 한 걸음 물러서기.'],
+  ['섭섭하지만 티 내지 않고 반찬만 몰래 보낸다.',1,'반찬은 좋은 마음이지만, 섭섭함을 속에 쌓아 두면 나중에 터지기 쉽습니다. 내 마음도 가볍게 말해 보세요.']]},
+ {who:'친구 사이',q:'공들여 고른 생일 선물에 친구 반응이 시큰둥합니다. 나는?',o:[
+  ['아무 말 안 하고 속으로 서운함을 쌓아 둔다.',0,'2번이 가장 빠지기 쉬운 길입니다. 쌓인 서운함은 스트레스 때 8번처럼 갑자기 터지기도 합니다.'],
+  ['"나 그거 엄청 고민해서 골랐는데, 좀 서운했어" 하고 웃으며 말한다.',2,'정답! <b>내 느낌에 솔직하자.</b> 가볍게 꺼내면 관계도 편해지고 마음에 쌓이지 않습니다.'],
+  ['다음부터 그 친구는 안 챙기기로 한다.',1,'나를 지키려는 마음은 이해되지만, 관계를 끊기보다 마음을 한 번 표현해 보는 쪽이 오래갑니다.']]},
+ {who:'모임에서',q:'나도 몸살 기운이 있는데, 모임 총무를 또 맡아 달라는 부탁을 받았습니다. 나는?',o:[
+  ['무리해서라도 맡는다. 내가 안 하면 누가 하겠어.',0,'"내가 없으면 안 될 거야"라는 마음이 슬며시 올라온 순간입니다. 난로도 연료가 있어야 탑니다.'],
+  ['"이번엔 어렵겠어. 다음엔 꼭 할게" 하고 거절한다.',2,'정답! <b>남의 눈물보다 내 콧물을 먼저 닦자.</b> 나를 먼저 챙길 때 따뜻함이 꺼지지 않습니다.'],
+  ['맡긴 하되 일하는 내내 투덜댄다.',1,'도움이 생색이 되는 길입니다. 할 거면 기꺼이, 어려우면 솔직하게가 서로 편합니다.']]},
+ {who:'2번 곁의 나',q:'늘 반찬을 챙겨 주는 이웃(2번 같은 분)이 오늘도 반찬을 가져왔습니다. 나는?',o:[
+  ['"자꾸 이러지 마세요, 괜찮다니까요" 하고 사양한다.',0,'배려지만, 거절이 반복되면 2번은 "나는 필요 없는 사람"이라는 신호로 받아들이기 쉽습니다.'],
+  ['"덕분에 이번 주 저녁 걱정을 덜었어요!" 하고 고맙게 받는다.',2,'정답! 고마움을 <b>구체적으로</b>. 도움을 가끔은 기꺼이 받아 주는 것이 2번에게 큰 보답입니다.'],
+  ['말없이 받고 그릇만 돌려준다.',1,'나쁘진 않지만, 2번에게는 "고마워" 한마디가 큰 힘입니다. 무엇이 좋았는지 한 줄 덧붙여 보세요.']]},
+ {who:'2번 곁의 나',q:'늘 웃으며 챙겨 주던 동료가 요즘 말이 없고 표정이 어둡습니다. 나는?',o:[
+  ['괜히 건드리지 않고 그냥 둔다.',1,'존중일 수 있지만, 2번은 서운함을 잘 말하지 못합니다. 누군가 길을 열어 주어야 꺼낼 수 있습니다.'],
+  ['"요즘 힘든 일 있어? 혹시 서운한 거 있으면 말해 줘" 하고 먼저 묻는다.',2,'정답! 2번이 쌓아 둔 마음을 꺼낼 수 있도록 <b>먼저 물어봐 주는 것</b>, 그것이 가장 큰 보답입니다.'],
+  ['다른 사람들에게 무슨 일인지 물어보고 다닌다.',0,'걱정에서 나온 행동이어도 본인에게는 부담이 될 수 있습니다. 직접, 조용히 물어봐 주세요.']]}
+];
+let g=null;
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
+function gNew(){g={i:0,pts:0,order:shuffle(SC.map((_,k)=>k)),ans:false};gShow();}
+function gShow(){const c=$('#gCard');
+  if(g.i>=SC.length){const max=SC.length*2,p=g.pts,bestp=Math.max(store.get('gbest',0),p);store.set('gbest',bestp);
+    const msg=p>=11?'♨️ 오래가는 도움의 달인! 묻고, 물러서고, 솔직하게.':p>=8?'🔥 따뜻한 마음은 충분해요. "한 번 묻기"만 더하면 완벽합니다.':'🪵 마음은 분명 따뜻합니다. 해설을 다시 보며 "오래가는 도움"을 떠올려 보세요.';
+    c.innerHTML=`<h2>결과</h2><div class="big">${p} / ${max}</div><p style="text-align:center">${msg}</p><p class="prog" style="text-align:center">최고 기록 ${bestp} / ${max}</p>
+    <div class="exp">오늘의 한 줄 — <b>도와드릴까요? 어떻게 도와드릴까요?</b><br>거리를 유지한 채 적절하게 돕는 것, 이것이 오래가는 도움입니다.</div>
+    <div class="row" style="margin-top:12px"><button class="btn sec" id="gShare">결과 복사</button><button class="btn" id="gAgain">다시 하기</button></div>`;
+    $('#gAgain').onclick=gNew;$('#gShare').onclick=()=>copy(`[마음 난로 온도계 · 묻고 돕기] ${p}/${max}점\n${msg}\nhttps://woojuntaek-lgtm.github.io/helper-stove/`);return;}
+  const s=SC[g.order[g.i]],ord=shuffle([0,1,2]);g.ans=false;
+  c.innerHTML=`<div class="prog">상황 ${g.i+1} / ${SC.length} · 점수 ${g.pts}</div><div class="pbar"><div style="width:${g.i/SC.length*100}%"></div></div>
+   <div class="scene"><span class="who">${s.who}</span><br>${s.q}</div><div class="opts">${ord.map(k=>`<button data-k="${k}">${s.o[k][0]}</button>`).join('')}</div><div id="gE"></div>`;
+  $$('#gCard .opts button').forEach(b=>b.onclick=()=>{if(g.ans)return;g.ans=true;const o=s.o[+b.dataset.k];g.pts+=o[1];
+    b.classList.add(o[1]===2?'ok':o[1]===1?'meh':'no');
+    if(o[1]!==2)$$('#gCard .opts button').forEach(x=>{if(s.o[+x.dataset.k][1]===2)x.classList.add('ok');});
+    $('#gE').innerHTML=`<div class="exp">${o[2]}</div><div class="row" style="margin-top:10px"><button class="btn" id="gN">${g.i<SC.length-1?'다음 상황':'결과 보기'}</button></div>`;
+    $('#gN').onclick=()=>{g.i++;gShow();};});}
+function gIntro(){$('#gCard').innerHTML=`<h2>🤝 도움은 누구를 위한 것일까</h2><p style="margin:0">일상의 상황 ${SC.length}가지. 어떤 도움이 <b>오래가는 도움</b>일까요? 2번의 입장, 그리고 2번 곁에 있는 사람의 입장이 섞여 나옵니다.</p><p class="note">최선 2점 · 아쉬움 1점 · 다시 생각 0점</p><div class="row" style="margin-top:12px"><button class="btn" id="gGo">시작하기</button></div>`;$('#gGo').onclick=gNew;}
+
+/* ===== 고마움 카드 ===== */
+const SUG={food:['이번 주 저녁 걱정을 덜었어','오랜만에 집밥 맛을 느꼈어','바쁜 아침이 한결 여유로웠어'],
+ work:['마감을 무사히 넘길 수 있었어','혼자였으면 밤샜을 일을 일찍 끝냈어','막혔던 부분이 확 풀렸어'],
+ listen:['답답했던 마음이 많이 풀렸어','혼자가 아니라는 느낌이 들었어','어떻게 할지 마음이 정해졌어'],
+ care:['아픈 와중에도 든든했어','금방 기운을 차릴 수 있었어','힘든 시간을 버틸 수 있었어'],
+ gift:['하루 종일 기분이 좋았어','나를 생각해 준 마음이 느껴졌어','오래 아껴 쓸게'],
+ always:['내가 여기까지 올 수 있었어','늘 마음이 따뜻했어','힘들 때마다 기댈 곳이 있었어']};
+const WHAT={food:'챙겨 준 반찬',work:'도와준 일',listen:'들어 준 이야기',care:'챙겨 준 마음',gift:'보내 준 선물',always:'늘 곁에서 챙겨 준 것'};
+const TPL=[
+ (w,t)=>`${w} 정말 고마워요.\n덕분에 ${t}.`,
+ (w,t)=>`덕분에 ${t}.\n${w}, 오래 기억할게요. 정말 고마워요.`,
+ (w,t)=>`${w} 생각하면 마음이 따뜻해져요.\n덕분에 ${t}. 이번엔 제가 챙길 차례예요.`,
+ (w,t)=>`고맙다는 말로는 부족하지만—\n${w} 덕분에 ${t}.\n당신은 존재만으로도 소중한 사람이에요.`];
+let tpl=0;
+const tidy=s=>{s=s.trim().replace(/[.。!~]+$/,'');if(!s)return '정말 큰 힘이 되었어요';return /[어아게해지]$/.test(s)&&!/요$/.test(s)?s+'요':s;};
+function cRender(){const w=$('#cWhat').value;
+  $('#cChips').innerHTML=SUG[w].map(s=>`<button>${s}</button>`).join('');
+  $$('#cChips button').forEach(b=>b.onclick=()=>{$('#cThanks').value=b.textContent;cPrev();});cPrev();}
+function cText(){const to=$('#cTo').value.trim(),fr=$('#cFrom').value.trim();
+  const body=TPL[tpl](WHAT[$('#cWhat').value],tidy($('#cThanks').value));
+  return {to:to?`${to}에게`:'고마운 당신에게',body,fr:fr?`— ${fr}`:''};}
+function cPrev(){const t=cText();$('#pTo').textContent=t.to;$('#pMsg').textContent=t.body;$('#pFrom').textContent=t.fr;}
+['cTo','cThanks','cFrom'].forEach(id=>$('#'+id).addEventListener('input',cPrev));
+$('#cWhat').onchange=cRender;
+$('#cAlt').onclick=()=>{tpl=(tpl+1)%TPL.length;cPrev();};
+$('#cCopy').onclick=async()=>{const t=cText(),txt=`${t.to}\n\n${t.body}\n\n${t.fr}`.trim();
+  if(navigator.share&&/Mobi|Android/i.test(navigator.userAgent)){try{await navigator.share({text:txt});return;}catch(e){}}
+  copy(txt);};
+cRender();
+
+/* ===== 탭 ===== */
+$$('.tabs button').forEach(b=>b.onclick=()=>{$$('.tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  ['thermo','game','card','info'].forEach(t=>$('#tab-'+t).hidden=t!==b.dataset.tab);
+  if(b.dataset.tab==='game'&&!g)gIntro();window.scrollTo(0,0);});
+})();
+</script>
+</body>
+</html>
